@@ -19,14 +19,27 @@
 						"type": "DatasetReference"
 					},
 					"name": "GenrateStage"
+				},
+				{
+					"dataset": {
+						"referenceName": "ItemAuditCosmosDbNoSqlDataset",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
 				}
 			],
 			"transformations": [
 				{
-					"name": "OktaIdFilter"
+					"name": "OktaIdNullFilter"
 				},
 				{
 					"name": "derivedColumn1"
+				},
+				{
+					"name": "filter1"
+				},
+				{
+					"name": "derivedColumn2"
 				}
 			],
 			"scriptLines": [
@@ -41,11 +54,16 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false) ~> ReadInputFile",
-				"ReadInputFile filter(!isNull(oktaId) && trim(oktaId) != '' && upper(trim(oktaId)) != 'NULL') ~> OktaIdFilter",
-				"OktaIdFilter derive(processId = $processId,",
+				"ReadInputFile filter(isNull(oktaId) || trim(oktaId) == '' || upper(trim(oktaId)) == 'NULL') ~> OktaIdNullFilter",
+				"filter1 derive(processId = $processId,",
 				"          status = \"Success\",",
 				"          step = \"Step-1\",",
 				"          failureReason = \"\") ~> derivedColumn1",
+				"ReadInputFile filter(!isNull(oktaId) && trim(oktaId) != '' && upper(trim(oktaId)) != 'NULL') ~> filter1",
+				"OktaIdNullFilter derive(processId = $processId,",
+				"          status = \"Fail\",",
+				"          step = \"Step-1\",",
+				"          failureReason = \"OktaId is NULL or EMPTY\") ~> derivedColumn2",
 				"derivedColumn1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
@@ -54,7 +72,24 @@
 				"     partitionFileNames:[($FileName)],",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     partitionBy('hash', 1)) ~> GenrateStage"
+				"     partitionBy('hash', 1)) ~> GenrateStage",
+				"derivedColumn2 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          newFSRAccountNumber as string,",
+				"          step as string,",
+				"          failureReason as string,",
+				"          status as string,",
+				"          processId as string,",
+				"          oktaId as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'document',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sink1"
 			]
 		}
 	}
