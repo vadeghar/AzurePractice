@@ -23,6 +23,24 @@
 								"value": "'@{pipeline().RunId}'",
 								"type": "Expression"
 							}
+						},
+						"datasetParameters": {
+							"GenrateStage": {
+								"FileName": {
+									"value": "@pipeline().RunId",
+									"type": "Expression"
+								}
+							}
+						},
+						"linkedServiceParameters": {
+							"GenrateStage": {
+								"schemaLinkedService": {
+									"FileName": {
+										"value": "@pipeline().RunId",
+										"type": "Expression"
+									}
+								}
+							}
 						}
 					},
 					"compute": {
