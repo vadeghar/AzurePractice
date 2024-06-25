@@ -24,9 +24,15 @@
 			"transformations": [
 				{
 					"name": "OktaIdFilter"
+				},
+				{
+					"name": "derivedColumn1"
 				}
 			],
 			"scriptLines": [
+				"parameters{",
+				"     processId as string",
+				"}",
 				"source(output(",
 				"          oktaId as string,",
 				"          newFSRAccountNumber as string",
@@ -35,7 +41,8 @@
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false) ~> ReadInputFile",
 				"ReadInputFile filter(!isNull(oktaId) && trim(oktaId) != '' && upper(trim(oktaId)) != 'NULL') ~> OktaIdFilter",
-				"OktaIdFilter sink(allowSchemaDrift: true,",
+				"OktaIdFilter derive(processId = $processId) ~> derivedColumn1",
+				"derivedColumn1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
 				"          {oktaId|newFSRAccountNumber} as string",

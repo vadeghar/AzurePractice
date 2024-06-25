@@ -17,7 +17,13 @@
 				"typeProperties": {
 					"dataflow": {
 						"referenceName": "ReadInputGenerateStage",
-						"type": "DataFlowReference"
+						"type": "DataFlowReference",
+						"parameters": {
+							"processId": {
+								"value": "'@{pipeline().RunId}'",
+								"type": "Expression"
+							}
+						}
 					},
 					"compute": {
 						"coreCount": 8,
