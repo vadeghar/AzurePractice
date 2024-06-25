@@ -1,0 +1,28 @@
+{
+	"name": "SourceAzureBlobStorage",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SourceAzureBlobStorage",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "oktanamespace-update-source.txt",
+				"container": "oktanamespaceupdate-source"
+			},
+			"columnDelimiter": "|",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "oktaId|newFSRAccountNumber",
+				"type": "String"
+			}
+		]
+	}
+}
