@@ -1,0 +1,27 @@
+{
+	"name": "StageAzureBlobStorage",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SourceAzureBlobStorage",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"container": "oktanamespaceupdate-stage"
+			},
+			"columnDelimiter": "|",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "oktaId|newFSRAccountNumber",
+				"type": "String"
+			}
+		]
+	}
+}
