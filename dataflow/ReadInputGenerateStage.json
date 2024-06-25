@@ -31,7 +31,8 @@
 			],
 			"scriptLines": [
 				"parameters{",
-				"     processId as string",
+				"     processId as string,",
+				"     FileName as string",
 				"}",
 				"source(output(",
 				"          oktaId as string,",
@@ -47,8 +48,10 @@
 				"     input(",
 				"          {oktaId|newFSRAccountNumber} as string",
 				"     ),",
+				"     partitionFileNames:[($FileName)],",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> GenrateStage"
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> GenrateStage"
 			]
 		}
 	}

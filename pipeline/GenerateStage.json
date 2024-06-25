@@ -22,7 +22,8 @@
 							"processId": {
 								"value": "'@{pipeline().RunId}'",
 								"type": "Expression"
-							}
+							},
+							"FileName": "'myfile.csv'"
 						},
 						"datasetParameters": {
 							"GenrateStage": {
