@@ -20,7 +20,11 @@
 		},
 		"schema": [
 			{
-				"name": "oktaId|newFSRAccountNumber",
+				"name": "oktaId",
+				"type": "String"
+			},
+			{
+				"name": "newFSRAccountNumber",
 				"type": "String"
 			}
 		]
