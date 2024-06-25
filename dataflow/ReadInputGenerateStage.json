@@ -1,0 +1,48 @@
+{
+	"name": "ReadInputGenerateStage",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SourceAzureBlobStorage",
+						"type": "DatasetReference"
+					},
+					"name": "ReadInputFile"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "StageAzureBlobStorage",
+						"type": "DatasetReference"
+					},
+					"name": "GenrateStage"
+				}
+			],
+			"transformations": [
+				{
+					"name": "OktaIdFilter"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          oktaId as string,",
+				"          newFSRAccountNumber as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> ReadInputFile",
+				"ReadInputFile filter(!isNull(oktaId) && trim(oktaId) != '' && upper(trim(oktaId)) != 'NULL') ~> OktaIdFilter",
+				"OktaIdFilter sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          {oktaId|newFSRAccountNumber} as string",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> GenrateStage"
+			]
+		}
+	}
+}
