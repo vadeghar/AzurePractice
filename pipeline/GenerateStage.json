@@ -32,16 +32,6 @@
 									"type": "Expression"
 								}
 							}
-						},
-						"linkedServiceParameters": {
-							"GenrateStage": {
-								"schemaLinkedService": {
-									"FileName": {
-										"value": "@pipeline().RunId",
-										"type": "Expression"
-									}
-								}
-							}
 						}
 					},
 					"compute": {
@@ -49,6 +39,150 @@
 						"computeType": "General"
 					},
 					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "StageToCosmos",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "GenerateStage",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "CosmosDbSqlApiSink",
+						"writeBehavior": "insert"
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "StageAzureBlobStorage",
+						"type": "DatasetReference",
+						"parameters": {
+							"FileName": {
+								"value": "@concat('stage-',pipeline().RunId,'.csv')",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ItemAuditCosmosDbNoSqlDataset",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "ReadStageFile",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "StageToCosmos",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"dataset": {
+						"referenceName": "StageAzureBlobStorage",
+						"type": "DatasetReference",
+						"parameters": {
+							"FileName": "@concat('stage-',pipeline().RunId,'.csv')"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "ReadStageFile",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('ReadStageFile').output.value",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"activities": [
+						{
+							"name": "Web1",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "POST",
+								"url": "https://laks-eus2-sb-ns-learn.servicebus.windows.net/adf-item-queue/messages",
+								"body": {
+									"value": "{\n    \"oktaId\": \"@{item().oktaId}\",\n    \"newNamespace\": \"breadcashback\",\n    \"processId\": \"@{pipeline().RunId}\"\n}",
+									"type": "Expression"
+								},
+								"authentication": {
+									"type": "MSI",
+									"resource": "https://servicebus.azure.net"
+								}
+							}
+						}
+					]
 				}
 			}
 		],
