@@ -139,7 +139,7 @@
 				}
 			},
 			{
-				"name": "ForEach1",
+				"name": "StageFileItem",
 				"type": "ForEach",
 				"dependsOn": [
 					{
@@ -158,7 +158,7 @@
 					"isSequential": false,
 					"activities": [
 						{
-							"name": "Web1",
+							"name": "PushToServiceBusQueue",
 							"type": "WebActivity",
 							"dependsOn": [],
 							"policy": {
