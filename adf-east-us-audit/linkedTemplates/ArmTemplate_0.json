@@ -1,0 +1,480 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "adf-east-us-audit"
+		},
+		"CosmosDbNoSql_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'CosmosDbNoSql'"
+		},
+		"SourceAzureBlobStorage_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'SourceAzureBlobStorage'"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/CosmosDbNoSql')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "CosmosDb",
+				"typeProperties": {
+					"connectionString": "[parameters('CosmosDbNoSql_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SourceAzureBlobStorage')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('SourceAzureBlobStorage_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ItemAuditCosmosDbNoSqlDataset')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "CosmosDbNoSql",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "CosmosDbSqlApiCollection",
+				"schema": {
+					"type": "object",
+					"properties": {
+						"newFSRAccountNumber": {
+							"type": "string"
+						},
+						"step": {
+							"type": "string"
+						},
+						"failureReason": {
+							"type": "string"
+						},
+						"status": {
+							"type": "string"
+						},
+						"processId": {
+							"type": "string"
+						},
+						"oktaId": {
+							"type": "string"
+						}
+					}
+				},
+				"typeProperties": {
+					"collectionName": "item-audit"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/CosmosDbNoSql')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SourceAzureBlobStorage')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "SourceAzureBlobStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "oktanamespace-update-source.txt",
+						"container": "oktanamespaceupdate-source"
+					},
+					"columnDelimiter": "|",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "oktaId",
+						"type": "String"
+					},
+					{
+						"name": "newFSRAccountNumber",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/SourceAzureBlobStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/StageAzureBlobStorage')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "SourceAzureBlobStorage",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"FileName": {
+						"type": "string",
+						"defaultValue": "test_file_name"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@dataset().FileName",
+							"type": "Expression"
+						},
+						"container": "oktanamespaceupdate-stage"
+					},
+					"columnDelimiter": "|",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "oktaId|newFSRAccountNumber",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/SourceAzureBlobStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ReadInputGenerateStage')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "SourceAzureBlobStorage",
+								"type": "DatasetReference"
+							},
+							"name": "ReadInputFile"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "StageAzureBlobStorage",
+								"type": "DatasetReference"
+							},
+							"name": "GenrateStage"
+						},
+						{
+							"dataset": {
+								"referenceName": "ItemAuditCosmosDbNoSqlDataset",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "OktaIdNullFilter"
+						},
+						{
+							"name": "derivedColumn1"
+						},
+						{
+							"name": "filter1"
+						},
+						{
+							"name": "derivedColumn2"
+						}
+					],
+					"scriptLines": [
+						"parameters{",
+						"     processId as string,",
+						"     FileName as string",
+						"}",
+						"source(output(",
+						"          oktaId as string,",
+						"          newFSRAccountNumber as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> ReadInputFile",
+						"ReadInputFile filter(isNull(oktaId) || trim(oktaId) == '' || upper(trim(oktaId)) == 'NULL') ~> OktaIdNullFilter",
+						"filter1 derive(processId = $processId,",
+						"          status = \"Success\",",
+						"          step = \"Step-1\",",
+						"          failureReason = \"\") ~> derivedColumn1",
+						"ReadInputFile filter(!isNull(oktaId) && trim(oktaId) != '' && upper(trim(oktaId)) != 'NULL') ~> filter1",
+						"OktaIdNullFilter derive(processId = $processId,",
+						"          status = \"Fail\",",
+						"          step = \"Step-1\",",
+						"          failureReason = \"OktaId is NULL or EMPTY\") ~> derivedColumn2",
+						"derivedColumn1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          {oktaId|newFSRAccountNumber} as string",
+						"     ),",
+						"     partitionFileNames:[($FileName)],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     partitionBy('hash', 1)) ~> GenrateStage",
+						"derivedColumn2 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          newFSRAccountNumber as string,",
+						"          step as string,",
+						"          failureReason as string,",
+						"          status as string,",
+						"          processId as string,",
+						"          oktaId as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'document',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/SourceAzureBlobStorage')]",
+				"[concat(variables('factoryId'), '/datasets/StageAzureBlobStorage')]",
+				"[concat(variables('factoryId'), '/datasets/ItemAuditCosmosDbNoSqlDataset')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/GenerateStage')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "GenerateStage",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "ReadInputGenerateStage",
+								"type": "DataFlowReference",
+								"parameters": {
+									"processId": {
+										"value": "'@{pipeline().RunId}'",
+										"type": "Expression"
+									},
+									"FileName": "'stage-'+$processId+'.csv'"
+								},
+								"datasetParameters": {
+									"ReadInputFile": {},
+									"GenrateStage": {
+										"FileName": {
+											"value": "@pipeline().RunId",
+											"type": "Expression"
+										}
+									},
+									"sink1": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "StageToCosmos",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "GenerateStage",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "CosmosDbSqlApiSink",
+								"writeBehavior": "insert"
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "StageAzureBlobStorage",
+								"type": "DatasetReference",
+								"parameters": {
+									"FileName": {
+										"value": "@concat('stage-',pipeline().RunId,'.csv')",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ItemAuditCosmosDbNoSqlDataset",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "ReadStageFile",
+						"type": "Lookup",
+						"dependsOn": [
+							{
+								"activity": "StageToCosmos",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"dataset": {
+								"referenceName": "StageAzureBlobStorage",
+								"type": "DatasetReference",
+								"parameters": {
+									"FileName": "@concat('stage-',pipeline().RunId,'.csv')"
+								}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "StageFileItem",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "ReadStageFile",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('ReadStageFile').output.value",
+								"type": "Expression"
+							},
+							"isSequential": false,
+							"activities": [
+								{
+									"name": "PushToServiceBusQueue",
+									"type": "WebActivity",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"method": "POST",
+										"headers": {},
+										"url": "https://laks-eus2-sb-ns-learn.servicebus.windows.net/adf-item-queue/messages",
+										"body": {
+											"value": "{\n    \"oktaId\": \"@{item().oktaId}\",\n    \"newNamespace\": \"breadcashback\",\n    \"processId\": \"@{pipeline().RunId}\"\n}",
+											"type": "Expression"
+										},
+										"authentication": {
+											"type": "MSI",
+											"resource": "https://servicebus.azure.net"
+										}
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/ReadInputGenerateStage')]",
+				"[concat(variables('factoryId'), '/datasets/StageAzureBlobStorage')]",
+				"[concat(variables('factoryId'), '/datasets/ItemAuditCosmosDbNoSqlDataset')]"
+			]
+		}
+	]
+}
