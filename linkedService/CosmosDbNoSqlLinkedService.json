@@ -1,0 +1,11 @@
+{
+	"name": "CosmosDbNoSqlLinkedService",
+	"properties": {
+		"annotations": [],
+		"type": "CosmosDb",
+		"typeProperties": {
+			"accountEndpoint": "https://laksusccosmoslearn.documents.azure.com:443/",
+			"database": " audit-eus2-learcn"
+		}
+	}
+}
