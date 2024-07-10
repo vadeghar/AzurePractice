@@ -1,0 +1,27 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "learn-data-factory-lakshman"
+		},
+		"AzureBlobStorageSource_connectionString": {
+			"value": ""
+		},
+		"CosmosDbNoSql_connectionString": {
+			"value": ""
+		},
+		"CosmosDbNoSqlLinkedService_connectionString": {
+			"value": ""
+		},
+		"SourceAzureBlobStorage_connectionString": {
+			"value": ""
+		},
+		"containerUri": {
+			"value": ""
+		},
+		"containerSasToken": {
+			"value": ""
+		}
+	}
+}
