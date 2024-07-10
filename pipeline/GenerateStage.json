@@ -44,8 +44,6 @@
 			{
 				"name": "StageToCosmos",
 				"type": "Copy",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "GenerateStage",
