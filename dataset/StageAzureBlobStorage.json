@@ -27,11 +27,6 @@
 			"firstRowAsHeader": true,
 			"quoteChar": "\""
 		},
-		"schema": [
-			{
-				"name": "oktaId|newFSRAccountNumber",
-				"type": "String"
-			}
-		]
+		"schema": []
 	}
 }
