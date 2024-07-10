@@ -2,7 +2,7 @@
 	"name": "ItemAuditCosmosDbNoSqlDataset",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "CosmosDbNoSql",
+			"referenceName": "CosmosDbNoSqlLinkedService",
 			"type": "LinkedServiceReference"
 		},
 		"annotations": [],
