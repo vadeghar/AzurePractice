@@ -200,8 +200,12 @@
 									"processId": "@{pipeline().RunId}"
 								},
 								"authentication": {
-									"type": "MSI",
-									"resource": "https://servicebus.azure.net"
+									"resource": "https://servicebus.azure.net",
+									"credential": {
+										"referenceName": "credential1",
+										"type": "CredentialReference"
+									},
+									"type": "UserAssignedManagedIdentity"
 								}
 							}
 						},
