@@ -2,7 +2,7 @@
 	"name": "Json1",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "SourceAzureBlobStorage",
+			"referenceName": "AzureBlobStorageSource",
 			"type": "LinkedServiceReference"
 		},
 		"annotations": [],
@@ -10,8 +10,8 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobStorageLocation",
-				"fileName": "toCosmos.json",
-				"container": "cosmostempdata"
+				"fileName": "tmp.json",
+				"container": "oktanamespaceupdate-stage"
 			}
 		},
 		"schema": {}

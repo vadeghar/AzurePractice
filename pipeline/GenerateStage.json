@@ -253,9 +253,9 @@
 											},
 											"sink": {
 												"type": "CosmosDbSqlApiSink",
+												"writeBatchTimeout": "00:01:00",
 												"writeBatchSize": 1000,
-												"writeBehavior": "insert",
-												"writeBatchTimeout": "00:01:00"
+												"writeBehavior": "insert"
 											},
 											"enableStaging": false,
 											"translator": {
