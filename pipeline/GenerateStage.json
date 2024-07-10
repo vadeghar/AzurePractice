@@ -186,63 +186,6 @@
 				}
 			},
 			{
-				"name": "ForEach1",
-				"type": "ForEach",
-				"dependsOn": [],
-				"userProperties": [],
-				"typeProperties": {
-					"activities": [
-						{
-							"name": "httpRespStatus",
-							"type": "SetVariable",
-							"dependsOn": [],
-							"policy": {
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"variableName": "httpResponseStatus",
-								"value": ""
-							}
-						},
-						{
-							"name": "Web1",
-							"type": "WebActivity",
-							"dependsOn": [
-								{
-									"activity": "httpRespStatus",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"policy": {
-								"timeout": "0.12:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"method": "POST",
-								"url": "https://laks-eus2-sb-ns-learn.servicebus.windows.net/adf-item-queue/messages",
-								"body": {
-									"oktaId": "@{item().oktaId}",
-									"newNamespace": "breadcashback",
-									"processId": "@{pipeline().RunId}"
-								},
-								"authentication": {
-									"type": "MSI",
-									"resource": "https://servicebus.azure.net"
-								}
-							}
-						}
-					]
-				}
-			},
-			{
 				"name": "ForEach2",
 				"type": "ForEach",
 				"dependsOn": [
@@ -326,11 +269,10 @@
 								},
 								"ifFalseActivities": [
 									{
-										"name": "Copy data1",
+										"name": "CopyToCosmosDB",
 										"type": "Copy",
 										"dependsOn": [],
 										"policy": {
-											"timeout": "0.12:00:00",
 											"retry": 0,
 											"retryIntervalInSeconds": 30,
 											"secureOutput": false,
@@ -338,8 +280,59 @@
 										},
 										"userProperties": [],
 										"typeProperties": {
-											"enableStaging": false
-										}
+											"source": {
+												"type": "JsonSource",
+												"storeSettings": {
+													"type": "AzureBlobStorageReadSettings",
+													"recursive": true,
+													"enablePartitionDiscovery": false
+												},
+												"formatSettings": {
+													"type": "JsonReadSettings"
+												},
+												"jsonResponse": "@item()"
+											},
+											"sink": {
+												"type": "CosmosDbSqlApiSink",
+												"writeBatchSize": 1000,
+												"writeBehavior": "insert",
+												"writeBatchTimeout": "00:01:00"
+											},
+											"enableStaging": false,
+											"translator": {
+												"type": "TabularTranslator",
+												"mappings": [
+													{
+														"source": {
+															"name": "name"
+														},
+														"sink": {
+															"name": "name"
+														}
+													},
+													{
+														"source": {
+															"name": "value"
+														},
+														"sink": {
+															"name": "value"
+														}
+													}
+												]
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "Json1",
+												"type": "DatasetReference"
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "ItemAuditCosmosDbNoSqlDataset",
+												"type": "DatasetReference"
+											}
+										]
 									}
 								]
 							}
