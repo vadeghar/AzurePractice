@@ -32,6 +32,13 @@
 									"type": "Expression"
 								}
 							}
+						},
+						"linkedServiceParameters": {
+							"GenrateStage": {
+								"schemaLinkedService": {
+									"FileName": "test_file_name"
+								}
+							}
 						}
 					},
 					"compute": {
