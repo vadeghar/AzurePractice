@@ -24,7 +24,11 @@
 				"type": "String"
 			},
 			{
-				"name": "newFSRAccountNumber",
+				"name": "newFsrAccountNumber",
+				"type": "String"
+			},
+			{
+				"name": "prin",
 				"type": "String"
 			}
 		]

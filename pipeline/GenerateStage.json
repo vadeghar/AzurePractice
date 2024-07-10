@@ -32,13 +32,6 @@
 									"type": "Expression"
 								}
 							}
-						},
-						"linkedServiceParameters": {
-							"GenrateStage": {
-								"schemaLinkedService": {
-									"FileName": "test_file_name"
-								}
-							}
 						}
 					},
 					"compute": {
@@ -51,6 +44,8 @@
 			{
 				"name": "StageToCosmos",
 				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "GenerateStage",
@@ -107,6 +102,8 @@
 			{
 				"name": "ReadStageFile",
 				"type": "Lookup",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "StageToCosmos",
@@ -148,6 +145,8 @@
 			{
 				"name": "ForEach2",
 				"type": "ForEach",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "ReadStageFile",
