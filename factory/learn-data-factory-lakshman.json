@@ -1,0 +1,9 @@
+{
+	"name": "learn-data-factory-lakshman",
+	"location": "eastus2",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "9ac4313f-29f6-4522-a411-c3f58181c794",
+		"tenantId": "71230159-a9b7-45c9-a0f0-49c0bac0962b"
+	}
+}
