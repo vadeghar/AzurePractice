@@ -44,6 +44,8 @@
 			{
 				"name": "StageToCosmos",
 				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "GenerateStage",
@@ -121,7 +123,7 @@
 						"type": "DelimitedTextSource",
 						"storeSettings": {
 							"type": "AzureBlobStorageReadSettings",
-							"recursive": true,
+							"recursive": false,
 							"enablePartitionDiscovery": false
 						},
 						"formatSettings": {
@@ -152,7 +154,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
-						"value": "@activity('GenerateStage').output.value",
+						"value": "@activity('ReadStageFile').output.value",
 						"type": "Expression"
 					},
 					"activities": [
