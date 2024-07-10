@@ -152,7 +152,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
-						"value": "@activity('GenerateStage').output.value",
+						"value": "@activity('GenerateStage').output",
 						"type": "Expression"
 					},
 					"activities": [
