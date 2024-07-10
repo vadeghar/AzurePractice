@@ -141,14 +141,7 @@
 			{
 				"name": "StageFileItem",
 				"type": "ForEach",
-				"dependsOn": [
-					{
-						"activity": "ReadStageFile",
-						"dependencyConditions": [
-							"Completed"
-						]
-					}
-				],
+				"dependsOn": [],
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
@@ -192,7 +185,7 @@
 					{
 						"activity": "ReadStageFile",
 						"dependencyConditions": [
-							"Succeeded"
+							"Completed"
 						]
 					}
 				],
@@ -264,7 +257,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"expression": {
-									"value": "@equals(activity('Web2').output.statusCode, 200)\n",
+									"value": "@equals(activity('Web2').output.statusCode, 400)\n",
 									"type": "Expression"
 								},
 								"ifFalseActivities": [
