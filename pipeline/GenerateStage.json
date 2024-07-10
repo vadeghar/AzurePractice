@@ -139,46 +139,6 @@
 				}
 			},
 			{
-				"name": "StageFileItem",
-				"type": "ForEach",
-				"dependsOn": [],
-				"userProperties": [],
-				"typeProperties": {
-					"items": {
-						"value": "@activity('ReadStageFile').output.value",
-						"type": "Expression"
-					},
-					"isSequential": false,
-					"activities": [
-						{
-							"name": "PushToServiceBusQueue",
-							"type": "WebActivity",
-							"dependsOn": [],
-							"policy": {
-								"timeout": "0.12:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"method": "POST",
-								"url": "https://laks-eus2-sb-ns-learn.servicebus.windows.net/adf-item-queue/messages",
-								"body": {
-									"value": "{\n    \"oktaId\": \"@{item().oktaId}\",\n    \"newNamespace\": \"breadcashback\",\n    \"processId\": \"@{pipeline().RunId}\"\n}",
-									"type": "Expression"
-								},
-								"authentication": {
-									"type": "MSI",
-									"resource": "https://servicebus.azure.net"
-								}
-							}
-						}
-					]
-				}
-			},
-			{
 				"name": "ForEach2",
 				"type": "ForEach",
 				"dependsOn": [
@@ -192,7 +152,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
-						"value": "@activity('ReadStageFile').output.value",
+						"value": "@activity('GenerateStage').output.value",
 						"type": "Expression"
 					},
 					"activities": [
@@ -207,7 +167,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"variableName": "httpResponseStatus",
-								"value": ""
+								"value": "200"
 							}
 						},
 						{
