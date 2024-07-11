@@ -1,0 +1,37 @@
+{
+	"name": "ItemAuditCosmosDbNoSqlDataset",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "CosmosDbNoSqlLinkedService",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "CosmosDbSqlApiCollection",
+		"schema": {
+			"type": "object",
+			"properties": {
+				"newFSRAccountNumber": {
+					"type": "string"
+				},
+				"step": {
+					"type": "string"
+				},
+				"failureReason": {
+					"type": "string"
+				},
+				"status": {
+					"type": "string"
+				},
+				"processId": {
+					"type": "string"
+				},
+				"oktaId": {
+					"type": "string"
+				}
+			}
+		},
+		"typeProperties": {
+			"collectionName": "item-audit"
+		}
+	}
+}

@@ -1,0 +1,15 @@
+{
+	"name": "azure-adf-eus2-learn",
+	"location": "eastus2",
+	"identity": {
+		"type": "SystemAssigned,UserAssigned",
+		"principalId": "d15527b8-5698-43f6-896f-2445d05acbe0",
+		"tenantId": "71230159-a9b7-45c9-a0f0-49c0bac0962b",
+		"userAssignedIdentities": {
+			"/subscriptions/f8b590ca-1ac0-42b2-a7c6-fac0e6506885/resourcegroups/managed-identity-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/userassignedmanagedentity": {
+				"clientId": "c3962819-4f63-4010-a4dd-c8a74b7fc2a9",
+				"principalId": "0834c828-0f20-4367-94b0-9bb3b027e6e5"
+			}
+		}
+	}
+}

@@ -1,0 +1,199 @@
+{
+	"name": "GenerateStage",
+	"properties": {
+		"activities": [
+			{
+				"name": "GenerateStage",
+				"type": "ExecuteDataFlow",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "ReadInputGenerateStage",
+						"type": "DataFlowReference",
+						"parameters": {
+							"processId": {
+								"value": "'@{pipeline().RunId}'",
+								"type": "Expression"
+							},
+							"FileName": "'stage-'+$processId+'.csv'"
+						},
+						"datasetParameters": {
+							"GenrateStage": {
+								"FileName": {
+									"value": "@pipeline().RunId",
+									"type": "Expression"
+								}
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "StageToCosmos",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "GenerateStage",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "CosmosDbSqlApiSink",
+						"writeBehavior": "insert"
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "StageAzureBlobStorage",
+						"type": "DatasetReference",
+						"parameters": {
+							"FileName": {
+								"value": "@concat('stage-',pipeline().RunId,'.csv')",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ItemAuditCosmosDbNoSqlDataset",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "ReadStageFile",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "StageToCosmos",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": false,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"dataset": {
+						"referenceName": "StageAzureBlobStorage",
+						"type": "DatasetReference",
+						"parameters": {
+							"FileName": "stage-f94fa435-8a93-45c8-9af8-f840e1bdad2d.csv"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "ReadStageFile",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('ReadStageFile').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "SendToServiceBus",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "POST",
+								"headers": {
+									"Content-Type": "application/json"
+								},
+								"url": "https://az-servicebus-laks.servicebus.windows.net/item-level-audit/messages",
+								"body": "{\"message\": \"Hello, World!\"}",
+								"authentication": {
+									"type": "ManagedServiceIdentity",
+									"resource": "https://servicebus.azure.net/"
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"httpResponseStatus": {
+				"type": "String"
+			}
+		},
+		"annotations": []
+	}
+}
