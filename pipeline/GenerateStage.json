@@ -178,11 +178,9 @@
 									"Content-Type": "application/json"
 								},
 								"url": "https://az-servicebus-laks.servicebus.windows.net/item-level-audit/messages",
-								"body": {
-									"message": "Hello, World!"
-								},
+								"body": "{\"message\": \"Hello, World!\"}",
 								"authentication": {
-									"type": "MSI",
+									"type": "ManagedServiceIdentity",
 									"resource": "https://servicebus.azure.net/"
 								}
 							}
