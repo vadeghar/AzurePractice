@@ -5,6 +5,8 @@
 			{
 				"name": "GenerateStage",
 				"type": "ExecuteDataFlow",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [],
 				"policy": {
 					"timeout": "0.12:00:00",
@@ -44,6 +46,8 @@
 			{
 				"name": "StageToCosmos",
 				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "GenerateStage",
@@ -132,14 +136,14 @@
 						"referenceName": "StageAzureBlobStorage",
 						"type": "DatasetReference",
 						"parameters": {
-							"FileName": "@concat('stage-',pipeline().RunId,'.csv')"
+							"FileName": "stage-f94fa435-8a93-45c8-9af8-f840e1bdad2d.csv"
 						}
 					},
 					"firstRowOnly": false
 				}
 			},
 			{
-				"name": "ForEach2",
+				"name": "ForEach1",
 				"type": "ForEach",
 				"dependsOn": [
 					{
@@ -157,30 +161,9 @@
 					},
 					"activities": [
 						{
-							"name": "httpResponseStatus",
-							"type": "SetVariable",
-							"dependsOn": [],
-							"policy": {
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"variableName": "httpResponseStatus",
-								"value": "200"
-							}
-						},
-						{
-							"name": "Web2",
+							"name": "SendToServiceBus",
 							"type": "WebActivity",
-							"dependsOn": [
-								{
-									"activity": "httpResponseStatus",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
+							"dependsOn": [],
 							"policy": {
 								"timeout": "0.12:00:00",
 								"retry": 0,
@@ -196,104 +179,12 @@
 								},
 								"url": "https://az-servicebus-laks.servicebus.windows.net/item-level-audit/messages",
 								"body": {
-									"oktaId": "@{item().oktaId}",
-									"newNamespace": "breadcashback",
-									"processId": "@{pipeline().RunId}"
+									"message": "Hello, World!"
 								},
 								"authentication": {
-									"resource": "https://servicebus.azure.net",
-									"credential": {
-										"referenceName": "credential1",
-										"type": "CredentialReference"
-									}
+									"type": "MSI",
+									"resource": "https://servicebus.azure.net/"
 								}
-							}
-						},
-						{
-							"name": "If Condition1",
-							"type": "IfCondition",
-							"dependsOn": [
-								{
-									"activity": "Web2",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"expression": {
-									"value": "@equals(activity('Web2').output.statusCode, 400)\n",
-									"type": "Expression"
-								},
-								"ifFalseActivities": [
-									{
-										"name": "CopyToCosmosDB",
-										"type": "Copy",
-										"dependsOn": [],
-										"policy": {
-											"retry": 0,
-											"retryIntervalInSeconds": 30,
-											"secureOutput": false,
-											"secureInput": false
-										},
-										"userProperties": [],
-										"typeProperties": {
-											"source": {
-												"type": "JsonSource",
-												"storeSettings": {
-													"type": "AzureBlobStorageReadSettings",
-													"recursive": true,
-													"enablePartitionDiscovery": false
-												},
-												"formatSettings": {
-													"type": "JsonReadSettings"
-												},
-												"jsonResponse": "@item()"
-											},
-											"sink": {
-												"type": "CosmosDbSqlApiSink",
-												"writeBatchTimeout": "00:01:00",
-												"writeBatchSize": 1000,
-												"writeBehavior": "insert"
-											},
-											"enableStaging": false,
-											"translator": {
-												"type": "TabularTranslator",
-												"mappings": [
-													{
-														"source": {
-															"name": "name"
-														},
-														"sink": {
-															"name": "name"
-														}
-													},
-													{
-														"source": {
-															"name": "value"
-														},
-														"sink": {
-															"name": "value"
-														}
-													}
-												]
-											}
-										},
-										"inputs": [
-											{
-												"referenceName": "Json1",
-												"type": "DatasetReference"
-											}
-										],
-										"outputs": [
-											{
-												"referenceName": "ItemAuditCosmosDbNoSqlDataset",
-												"type": "DatasetReference"
-											}
-										]
-									}
-								]
 							}
 						}
 					]
