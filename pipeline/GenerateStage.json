@@ -191,6 +191,9 @@
 							"userProperties": [],
 							"typeProperties": {
 								"method": "POST",
+								"headers": {
+									"Content-Type": "application/json"
+								},
 								"url": "https://laks-eus2-sb-ns-learn.servicebus.windows.net/adf-item-queue/messages",
 								"body": {
 									"oktaId": "@{item().oktaId}",
@@ -202,8 +205,7 @@
 									"credential": {
 										"referenceName": "credential1",
 										"type": "CredentialReference"
-									},
-									"type": "UserAssignedManagedIdentity"
+									}
 								}
 							}
 						},
